@@ -21,6 +21,7 @@ val strokeFactor : Int = 90
 val sizeFactor : Float = 2.9f
 val foreColor : Int = Color.parseColor("#4527A0")
 val backColor : Int = Color.parseColor("#BDBDBD")
+val rFactor : Float = 3.6f
 
 fun Int.inverse() : Float = 1f / this
 fun Float.scaleFactor() : Float = Math.floor(this / scDiv).toFloat()
@@ -31,3 +32,44 @@ fun Float.mirrorValue(a : Int, b : Int) : Float {
     return (1 - k) * a.inverse() + k * b.inverse()
 }
 fun Float.updateValue(dir : Float, a : Int, b : Int) : Float = mirrorValue(a, b) * dir * scGap
+
+fun Canvas.drawLineSquareDot(i : Int, deg : Float, sc : Float, size : Float, paint : Paint) {
+    save()
+    rotate(deg)
+    translate(0f, -size)
+    drawLine(-size / 2, 0f, size / 2, 0f, paint)
+    for (j in 0..(balls - 1)) {
+        val scj : Float = sc.divideScale(j, balls)
+        save()
+        translate((size / 2) * (1 - 2 * j), 0f)
+        drawCircle(0f, 0f, scj * (size / rFactor), paint)
+        restore()
+    }
+    restore()
+}
+
+fun Canvas.drawLinesSquareDot(sc1 : Float, sc2 : Float, size : Float, paint : Paint) {
+    var deg : Float = 0f
+    for (j in 0..(lines - 1)) {
+        val sc1j : Float = sc1.divideScale(j, lines)
+        val sc2j : Float = sc2.divideScale(j, lines)
+        deg = 90f * sc1j
+        drawLineSquareDot(j, deg, sc2j, size, paint)
+    }
+}
+
+fun Canvas.drawLSDNode(i : Int, scale : Float, paint : Paint) {
+    val w : Float = width.toFloat()
+    val h : Float = height.toFloat()
+    val gap : Float = h / (nodes + 1)
+    val size : Float = gap / sizeFactor
+    val sc1 : Float = scale.divideScale(0, 2)
+    val sc2 : Float = scale.divideScale(1, 2)
+    paint.color = foreColor
+    paint.strokeCap = Paint.Cap.ROUND
+    paint.strokeWidth = Math.min(w, h) / strokeFactor
+    save()
+    translate(w / 2, gap * (i + 1))
+    drawLinesSquareDot(sc1, sc2, size, paint)
+    restore()
+}
